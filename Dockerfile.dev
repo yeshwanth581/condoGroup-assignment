@@ -1,0 +1,18 @@
+# Stage 1: Build Stage
+FROM node:21 AS builder
+
+# Create app directory
+WORKDIR /usr/src/app
+
+# Install app dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Copy environment files
+COPY .env .env
+
+# Command to run the app
+CMD ["npm", "run", "dev"]

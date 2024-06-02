@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app-dev:
+    container_name: repo-stars-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      target: builder
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+
+  app-prod:
+    container_name: repo-stars-prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    command: npm start

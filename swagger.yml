@@ -1,0 +1,252 @@
+openapi: 3.0.0
+info:
+  title: Node.js Initial API
+  version: 1.0.0
+  description: A simple Express API application
+servers:
+  - url: http://localhost:3000/api
+paths:
+  /v1/getAllRepos:
+    get:
+      summary: Get all repositories
+      tags:
+        - "/v1/"
+      description: Fetches a list of repositories based on the specified query parameters.
+      parameters:
+        - in: query
+          name: language
+          schema:
+            type: string
+          required: true
+          example: Java
+          description: The programming language of the repositories.
+        - in: query
+          name: created
+          schema:
+            type: string
+            format: string
+          required: true
+          example: '2024-01-01'
+          description: The creation date of the repositories (YYYY-MM-DD).
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          required: false
+          example: 10
+          description: The number of repositories to return.
+        - in: query
+          name: page
+          schema:
+            type: integer
+          required: false
+          example: 1
+          description: The page number of the results.
+        - in: query
+          name: sortBy
+          schema:
+            type: string
+            enum:
+              - stars
+              - forks
+              - updated
+          required: false
+          example: forks
+          description: based on this key the results will be sorted.
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          required: false
+          example: desc
+          description: The sort direction.
+        - in: query
+          name: excludedScoreCriteria
+          schema:
+            type: string
+          required: false
+          example: forks,stars
+          description: Comma-separated list of metrics to exclude (e.g., forks,stars,recency). At max 2 at a time.
+      responses:
+        '200':
+          description: A list of repositories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 561730219
+                    git_url:
+                      type: string
+                      example: git://github.com/krahets/hello-algo.git
+                    full_name:
+                      type: string
+                      example: krahets/hello-algo
+                    description:
+                      type: string
+                      example: "《Hello 算法》：动画图解、一键运行的数据结构与算法教程。支持 Python, Java, C++, C, C#, JS, Go, Swift, Rust, Ruby, Kotlin, TS, Dart 代码。简体版和繁体版同步更新，English version ongoing"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: 2022-11-04T11:08:34Z
+                    language:
+                      type: string
+                      example: Java
+                    stargazers_count:
+                      type: integer
+                      example: 76957
+                    forks_count:
+                      type: integer
+                      example: 9724
+                    updated_at:
+                      type: string
+                      format: date-time
+                      example: 2024-05-31T07:31:18Z
+                    score:
+                      type: number
+                      example: 42.66
+                    breakdown:
+                      type: object
+                      properties:
+                        recency:
+                          type: object
+                          properties:
+                            weight:
+                              type: number
+                              example: 0.29
+                            value:
+                              type: number
+                              example: 29
+                        forks:
+                          type: object
+                          properties:
+                            weight:
+                              type: number
+                              example: 0
+                            value:
+                              type: number
+                              example: 0
+                        stars:
+                          type: object
+                          properties:
+                            weight:
+                              type: number
+                              example: 0.71
+                            value:
+                              type: number
+                              example: 13.66
+        '500':
+          description: Internal server error
+
+  /v1/{owner}/{repositoryName}/getRepoInfo:
+    get:
+      summary: Get repository info
+      tags:
+        - "/v1/"
+      description: Fetches information about a specific repository along with calculated scores based on excluded metrics.
+      parameters:
+        - in: path
+          name: owner
+          schema:
+            type: string
+          required: true
+          description: Owner of the repository(e.g., freecodecamp).
+          example: freecodecamp
+        - in: path
+          name: repositoryName
+          schema:
+            type: string
+          required: true
+          description: Name of the repo (e.g., uuid-generator).
+          example: freecodecamp
+        - in: query
+          name: excludedScoreCriteria
+          schema:
+            type: string
+          required: false
+          description: Comma-separated list of metrics to exclude (e.g., stars,forks,recency).
+      responses:
+        '200':
+          description: Repository information with score
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 28457823
+                  git_url:
+                    type: string
+                    example: git://github.com/freeCodeCamp/freeCodeCamp.git
+                  full_name:
+                    type: string
+                    example: freeCodeCamp/freeCodeCamp
+                  description:
+                    type: string
+                    example: "freeCodeCamp.org's open-source codebase and curriculum. Learn to code for free."
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: 2014-12-24T17:49:19Z
+                  language:
+                    type: string
+                    example: TypeScript
+                  stargazers_count:
+                    type: integer
+                    example: 390738
+                  forks_count:
+                    type: integer
+                    example: 35812
+                  updated_at:
+                    type: string
+                    format: date-time
+                    example: 2024-05-31T07:43:41Z
+                  score:
+                    type: number
+                    example: 48.59
+                  breakdown:
+                    type: object
+                    properties:
+                      recency:
+                        type: object
+                        properties:
+                          weight:
+                            type: number
+                            example: 0.4
+                          value:
+                            type: number
+                            example: 40
+                      forks:
+                        type: object
+                        properties:
+                          weight:
+                            type: number
+                            example: 0.6
+                          value:
+                            type: number
+                            example: 8.59
+                      stars:
+                        type: object
+                        properties:
+                          weight:
+                            type: number
+                            example: 0
+                          value:
+                            type: number
+                            example: 0
+                  oldScore:
+                    type: number
+                    example: 48.59
+                  diffPercentage:
+                    type: number
+                    example: 0
+        '500':
+          description: Internal server error
