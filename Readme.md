@@ -60,3 +60,5 @@ This is a simple Node.js Express API application that fetches repository data fr
     1. We can use web-sockets to see current trading data for a symbol.
     2. I would take a symbol as input and will trigger getAggregatedCandleStick endpoint and subscribe to trade events via webscoket post login.
     3. This way I can dispaly the cahrt and also live stock price in single UI
+6. .env
+    1. The env file can be encrypted using the git-crypt lock, unlock and can be commited to repo. Here i;m commiting as plain text.
