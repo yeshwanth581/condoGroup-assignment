@@ -1,5 +1,5 @@
 # Stage 1: Build Stage
-FROM node:21 AS builder
+FROM node:22 AS builder
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -15,7 +15,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production Stage
-FROM node:21
+FROM node:22
 
 # Create app directory
 WORKDIR /usr/src/app

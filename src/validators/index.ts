@@ -1,1 +1,1 @@
-export * from './repositoryValidator'
+export * from './stockReqValidator'

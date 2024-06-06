@@ -4,30 +4,18 @@ dotenv.config();
 
 import app from './app';
 import logger from './utils/logger';
-import { closeCacheDB } from './providers/cacheProvider';
+
+import { initializeDatabase, closeDatabaseConnection } from './datasources/db';
+import { connectRedis, closeRedisConnection } from './datasources/redis'
+import { IncomingMessage, Server, ServerResponse } from 'http';
+import initAndSyncTables from './datasources/initTables';
+import { connectWebSocket } from './datasources/finnhubWebSocket';
 
 const PORT = process.env.PORT || 3000;
-
-// Start the server and handle errors
-const server = app.listen(PORT, onListening);
-server.on('error', onError);
-
-// Event listener for HTTP server "listening" event.
-function onListening() {
-    logger.info(`Listening on port ${PORT}`);
-}
-
-// Listen for termination signals
-process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-// Handle uncaught exceptions
-process.on('uncaughtException', (error: Error) => {
-    logger.error('Uncaught exception error', { error: error.message, stack: error.stack })
-});
+let server: Server<typeof IncomingMessage, typeof ServerResponse>
 
 // Event listener for HTTP server "error" event.
-function onError(error: NodeJS.ErrnoException) {
+const onError = (error: NodeJS.ErrnoException) => {
     if (error.syscall !== 'listen') {
         throw error;
     }
@@ -50,10 +38,10 @@ function onError(error: NodeJS.ErrnoException) {
     }
 }
 
-async function gracefulShutdown(signal: string) {
+const gracefulShutdown = async (signal: string) => {
     logger.info(`Received ${signal}. Shutting down gracefully...`);
-
-    await closeCacheDB()
+    await closeDatabaseConnection();
+    await closeRedisConnection();
 
     server.close(() => {
         logger.info('Closed out remaining connections.');
@@ -66,3 +54,24 @@ async function gracefulShutdown(signal: string) {
         process.exit(1);
     }, 10000);
 };
+
+// Listen for termination signals
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error: Error) => {
+    logger.error('Uncaught exception error', { error: error.message, stack: error.stack })
+});
+
+// Start the server and handle errors
+const startApp = async () => {
+    await initializeDatabase();
+    await initAndSyncTables();
+    await connectRedis();
+    connectWebSocket();
+    server = app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));
+    server.on('error', onError);
+}
+
+startApp();

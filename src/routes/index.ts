@@ -1,10 +1,11 @@
 import { Router } from 'express';
-import { getAllRepos, getRepoInfo } from '../controllers';
-import { fetchAllReposParamsValidator, fetchRepoInfoParamsValidator } from '../validators';
+import { loginUser, registerUser, getCandleStickData } from '../controllers';
+import { candleStickReqValidator } from '../validators';
+import { authenticateToken } from '../middleware/auth';
 
 const router = Router();
 
-router.get('/getAllRepos', fetchAllReposParamsValidator, getAllRepos);
-router.get('/:username/:repositoryName/getRepoInfo', fetchRepoInfoParamsValidator, getRepoInfo)
-
+router.get('/:symbol/getCandleStickData', authenticateToken, candleStickReqValidator, getCandleStickData)
+router.post('/register', registerUser);
+router.post('/login', loginUser);
 export default router;
