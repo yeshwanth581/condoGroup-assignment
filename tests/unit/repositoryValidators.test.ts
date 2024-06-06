@@ -1,173 +1,77 @@
 import { Request, Response, NextFunction } from 'express';
-import { fetchAllReposParamsValidator, fetchRepoInfoParamsValidator } from '../../src/validators';
+import { candleStickReqValidator } from '../../src/validators';
 
-// Mocking the Request, Response, and NextFunction
-const mockRequest = (query: any) => {
-    return {
-        query
-    } as Request;
-};
+describe('candleStickReqValidator', () => {
+    let req: Partial<Request>;
+    let res: Partial<Response>;
+    let next: NextFunction;
 
-const mockResponse = () => {
-    const res = {} as Response;
-    res.status = jest.fn().mockReturnValue(res);
-    res.json = jest.fn().mockReturnValue(res);
-    return res;
-};
-
-const mockNext = () => jest.fn();
-
-describe('validateQueryParams Middleware', () => {
-    it('should call next() when the query parameters are valid', () => {
-        const req = mockRequest({
-            language: 'javascript',
-            created: '2023-05-30',
-            excludedScoreCriteria: 'stars,forks'
-        });
-        const res = mockResponse();
-        const next = mockNext();
-
-        fetchAllReposParamsValidator(req, res, next);
-
-        expect(next).toHaveBeenCalled();
-        expect(res.status).not.toHaveBeenCalled();
+    beforeEach(() => {
+        req = {
+            query: {},
+            params: {},
+        };
+        res = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn()
+        };
+        next = jest.fn();
     });
 
-    it('should call next() when the query parameters are valid without excludedScoreCriteria', () => {
-        const req = mockRequest({
-            language: 'javascript',
-            created: '2023-05-30',
-        });
-        const res = mockResponse();
-        const next = mockNext();
+    it('should call next() when request params are valid', () => {
+        req.query = {
+            startDate: '1717433110000',
+            endDate: '1717523719000',
+            symbol: 'AAPL',
+        };
 
-        fetchAllReposParamsValidator(req, res, next);
+        candleStickReqValidator(req as Request, res as Response, next);
 
-        expect(next).toHaveBeenCalled();
-        expect(res.status).not.toHaveBeenCalled();
-    });
-
-    it('should return an error if language is missing', () => {
-        const req = mockRequest({
-            created: '2023-05-30',
-            excludedScoreCriteria: 'stars,forks'
-        });
-        const res = mockResponse();
-        const next = mockNext();
-
-        fetchAllReposParamsValidator(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            message: '"language" is required'
-        }));
-        expect(next).not.toHaveBeenCalled();
-    });
-
-    it('should return an error if created date is invalid', () => {
-        const req = mockRequest({
-            language: 'javascript',
-            created: '2023/05/30',
-            excludedScoreCriteria: 'stars,forks'
-        });
-        const res = mockResponse();
-        const next = mockNext();
-
-        fetchAllReposParamsValidator(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            statusCode: 400,
-            name: 'INVALID_REQUEST'
-        }));
-        expect(next).not.toHaveBeenCalled();
-    });
-
-    it('should return an error if excludedScoreCriteria has more than 2 values', () => {
-        const req = mockRequest({
-            language: 'javascript',
-            created: '2023-05-30',
-            excludedScoreCriteria: 'stars,forks,recency'
-        });
-        const res = mockResponse();
-        const next = mockNext();
-
-        fetchAllReposParamsValidator(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            message: expect.stringContaining('At most two values are allowed')
-        }));
-        expect(next).not.toHaveBeenCalled();
-    });
-
-    it('should return an error if excludedScoreCriteria contains invalid values', () => {
-        const req = mockRequest({
-            language: 'javascript',
-            created: '2023-05-30',
-            excludedScoreCriteria: 'stars,invalid'
-        });
-        const res = mockResponse();
-        const next = mockNext();
-
-        fetchAllReposParamsValidator(req, res, next);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            message: expect.stringContaining('The valid values are stars,forks,recency. invalid is invalid')
-        }));
-        expect(next).not.toHaveBeenCalled();
-    });
-
-
-    it('should accept empty params for fetchRepoInfo schema', () => {
-        const req = mockRequest({});
-        const res = mockResponse();
-        const next = mockNext();
-
-        fetchRepoInfoParamsValidator(req, res, next);
         expect(next).toHaveBeenCalled();
     });
 
-    it('should return an error if excludedScoreCriteria contains invalid values for fetchRepoInfo schema', () => {
-        const req = mockRequest({
-            excludedScoreCriteria: 'stars,invalid'
-        });
-        const res = mockResponse();
-        const next = mockNext();
+    it('should return 400 error when startDate or endDate is missing', () => {
+        req.query = {
+            symbol: 'AAPL',
+        };
 
-        fetchRepoInfoParamsValidator(req, res, next);
+        candleStickReqValidator(req as Request, res as Response, next);
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            message: expect.stringContaining('The valid values are stars,forks,recency. invalid is invalid')
+            name: 'INVALID_REQUEST',
         }));
         expect(next).not.toHaveBeenCalled();
     });
 
-    it('should accept valud excludedScoreCriteria for fetchRepoInfo schema', () => {
-        const req = mockRequest({
-            excludedScoreCriteria: 'stars,recency'
-        });
-        const res = mockResponse();
-        const next = mockNext();
+    it('should return 400 error when startDate or endDate is invalid', () => {
+        req.query = {
+            startDate: 'invalid',
+            endDate: '1717523719000',
+            symbol: 'AAPL',
+        };
 
-        fetchRepoInfoParamsValidator(req, res, next);
-        expect(next).toHaveBeenCalled();
-    });
-
-    it('should return an error if excludedScoreCriteria has more than 2 values for fetchRepoInfo schema', () => {
-        const req = mockRequest({
-            excludedScoreCriteria: 'stars,forks,recency'
-        });
-        const res = mockResponse();
-        const next = mockNext();
-
-        fetchRepoInfoParamsValidator(req, res, next);
+        candleStickReqValidator(req as Request, res as Response, next);
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
-            message: expect.stringContaining('At most two values are allowed')
+            name: 'INVALID_REQUEST',
+        }));
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should return 400 error when startDate is greater than endDate', () => {
+        req.query = {
+            startDate: '1717523719000',
+            endDate: '1717433110000',
+            symbol: 'AAPL',
+        };
+
+        candleStickReqValidator(req as Request, res as Response, next);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+            name: 'INVALID_REQUEST',
         }));
         expect(next).not.toHaveBeenCalled();
     });

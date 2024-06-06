@@ -17,7 +17,7 @@ export const registerNewUser = async (username: string, password: string) => {
         const user = await usersTable.create({ username, password: hashedPassword });
         return user.toJSON();
     } catch (error: any) {
-        let message = error?.errors[0]?.message || 'Something went wrong';
+        let message = error?.errors?.[0]?.message || 'Something went wrong';
         const errorInfo = message.includes('must be unique') ? new ResourceConflictError(message) : new InternalServerError()
         logger.error('Error while registering user', { error: errorInfo })
         throw errorInfo
@@ -38,8 +38,8 @@ export const login = async (username: string, password: string) => {
         const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
         await redisClient.sAdd(`tokens:${user.id}`, token);
         return token
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Error while trying to login', { error })
-        throw new InternalServerError('Something went wrong while logging in')
+        throw ((error.statusCode) ? error : new InternalServerError('Something went wrong while logging in'))
     }
 }

@@ -23,7 +23,7 @@ export const authenticateToken = async (req: Request, res: Response, next: NextF
             return res.status(403).json(new ForbiddenError());
         }
 
-        req.headers.user = decoded;
+        (req.headers as any).user = decoded;
         next();
     } catch (err) {
         return res.status(403).json(new ForbiddenError());

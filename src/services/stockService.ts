@@ -134,7 +134,7 @@ const resetCheckpoints = () => {
     timeout = initTimeout()
 }
 
-const batchInsertStockTrades = async () => {
+export const batchInsertStockTrades = async () => {
     const toBeInsertedData = [...stockTrades]
     resetCheckpoints();
 
